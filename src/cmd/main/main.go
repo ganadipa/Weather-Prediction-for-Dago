@@ -4,6 +4,7 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
+	"forecast/internal/logic"
 	"log"
 	"os"
 	"strconv"
@@ -16,9 +17,8 @@ func main() {
 	var matrix [][]float64
 	matrix = getMatrix("../data/dago-matrix.csv")
 
-	for _, row := range matrix {
-		fmt.Println(row)
-	}
+	result := logic.GetProbability(matrix, 10, 3)
+	fmt.Println(result)
 }
 
 func getMatrix(path string) [][]float64 {
