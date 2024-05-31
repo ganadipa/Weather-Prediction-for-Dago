@@ -18,8 +18,13 @@ func main() {
 	matrix = getMatrix("../data/dago-matrix.csv")
 
 	naiveCalculator := logic.NaiveCalculator{}
-	result := naiveCalculator.GetProbability(matrix, 1, 3)
-	fmt.Println(result)
+	result1 := naiveCalculator.GetProbability(matrix, 100, 3)
+
+	optimizedCalculator := logic.OptimizedCalculator{}
+	result2 := optimizedCalculator.GetProbability(matrix, 100, 3)
+
+	fmt.Println(result1)
+	fmt.Println(result2)
 }
 
 func getMatrix(path string) [][]float64 {
