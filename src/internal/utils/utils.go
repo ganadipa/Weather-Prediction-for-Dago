@@ -18,7 +18,7 @@ import (
 
 func GetLastDayFromDataset() string {
 	defaultDate := "2024-05-25"
-	filePath := "../data/dago.csv"
+	filePath := "../data/dago-complete.csv"
 
 	// Check if the file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -83,7 +83,7 @@ func GetDaysAfterNum(date string, num int) string {
 
 func AppendWeatherResponseToDataset(weatherResponse types.WeatherResponse) {
 	dirPath := "../data"
-	filePath := filepath.Join(dirPath, "dago.csv")
+	filePath := filepath.Join(dirPath, "dago-complete.csv")
 
 	// Check if the directory exists, if not, create it
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
@@ -123,7 +123,12 @@ func AppendWeatherResponseToDataset(weatherResponse types.WeatherResponse) {
 			continue
 		}
 
-		record := []string{data.Datetime, data.Weather.Description}
+		record := []string{data.Datetime, data.Weather.Description,
+			strconv.FormatFloat(data.Humidity, 'f', -1, 64),
+			strconv.FormatFloat(data.Temperature, 'f', -1, 64),
+			strconv.FormatFloat(data.Precipitation, 'f', -1, 64),
+			strconv.FormatFloat(data.WindSpeed, 'f', -1, 64),
+		}
 		if err := writer.Write(record); err != nil {
 			fmt.Println("Error writing record to file:", err)
 		}

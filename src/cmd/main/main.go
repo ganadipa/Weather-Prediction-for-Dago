@@ -17,7 +17,8 @@ func main() {
 	var matrix [][]float64
 	matrix = getMatrix("../data/dago-matrix.csv")
 
-	result := logic.GetProbability(matrix, 10, 3)
+	naiveCalculator := logic.NaiveCalculator{}
+	result := naiveCalculator.GetProbability(matrix, 1, 3)
 	fmt.Println(result)
 }
 
