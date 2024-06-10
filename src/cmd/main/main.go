@@ -2,58 +2,114 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
 	"forecast/internal/logic"
+	"forecast/internal/types"
+	"forecast/internal/utils"
 	"log"
 	"os"
 	"strconv"
+	"strings"
+	"time"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
 
-	// Get transition matrix from "../data/dago-matrix.csv"
+	fmt.Println("Weather prediction for Dago, Bandung!\n\n")
 
-	var matrix [][]float64 = getMatrix("../data/dago-matrix.csv")
+	fmt.Print("Getting the last 14 days weather...")
+	data := get14DaysWeather()
+	fmt.Println(" Done!")
 
-	naiveCalculator := logic.NaiveCalculator{}
-	result1 := naiveCalculator.GetProbability(matrix, 100, 3)
+	fmt.Print("Transforming the data into transition matrix...")
+	transition_matrix := utils.GetMatrix(data)
+	fmt.Println(" Done!")
 
-	optimizedCalculator := logic.OptimizedCalculator{}
-	result2 := optimizedCalculator.GetProbability(matrix, 100, 3)
+	fmt.Print("Getting the current weather...")
+	current_weather := utils.GetCurrentWeather()
+	current_weather_index := utils.GetIndex(current_weather.WeatherDescription)
+	fmt.Println(" Done!\n\n")
 
-	fmt.Println(result1)
-	fmt.Println(result2)
+	fmt.Println("Select your method! ")
+	fmt.Print("Naive or Optimized (n/o)?")
+
+	var choice string
+	fmt.Scanln(&choice)
+	for choice != "n" && choice != "o" {
+		fmt.Println("Invalid choice, please input n or o")
+		fmt.Scanln(&choice)
+	}
+
+	var probs [][]float64
+	fmt.Print("OK! ")
+	if choice == "n" {
+		fmt.Println("Using Naive Method\n\n")
+		naive := logic.NaiveCalculator{}
+		probs = naive.GetProbability(transition_matrix, 4, current_weather_index, 4)
+	} else {
+		fmt.Println("Using Optimized Method\n\n")
+		optimized := logic.OptimizedCalculator{}
+		probs = optimized.GetProbability(transition_matrix, 4, current_weather_index, 4)
+	}
+
+	fmt.Println("From our calculation, our prediction is")
+	for i := range probs {
+		highest, second := utils.GetFirstAndSecondHighestIndex(probs[i])
+		fmt.Print("In the next ", (i+1)*6, " hour, ")
+		fmt.Println("It will be", utils.GetWeather(highest), "or", utils.GetWeather(second))
+	}
+
 }
 
-func getMatrix(path string) [][]float64 {
-	// Open the CSV file
-	file, err := os.Open(path)
+func getApiKey() string {
+	// Load .env file
+	err := godotenv.Load("../.env")
 	if err != nil {
-		log.Fatalf("failed to open file: %s", err)
-	}
-	defer file.Close()
-
-	// Create a new CSV reader
-	reader := csv.NewReader(file)
-
-	// Read all the records from the CSV file
-	records, err := reader.ReadAll()
-	if err != nil {
-		log.Fatalf("failed to read file: %s", err)
+		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	// Convert the records into a 2D slice of integers
-	matrix := make([][]float64, len(records))
-	for i, record := range records {
-		matrix[i] = make([]float64, len(record))
-		for j, value := range record {
-			matrix[i][j], err = strconv.ParseFloat(value, 64)
-			if err != nil {
-				log.Fatalf("failed to convert string to int: %s", err)
-			}
+	// Get the API key from environment variables
+	apiKey := os.Getenv("API_KEY")
+	if apiKey == "" {
+		log.Fatal("API_KEY not set in .env file")
+	}
+
+	return apiKey
+}
+
+func get14DaysWeather() []types.HistoricalDatum {
+	apiKey := getApiKey()
+	timeNow := time.Now().Format("2006-01-02:15")
+	from := utils.GetDaysWithHourAfterNumDays(timeNow, -14)
+
+	var bytes []byte = utils.FetchData(apiKey, from, timeNow)
+	var data types.DescriptionOnlyData
+	utils.Parse(bytes, &data)
+
+	// categorize the weather
+
+	var ret []types.HistoricalDatum
+	for i := range data.Data {
+		hour := strings.Split(data.Data[i].Datetime, ":")[1]
+		intHour, err := strconv.Atoi(hour)
+		if err != nil {
+			fmt.Println("Error converting string to int:", err)
+			return nil
+		}
+
+		if (intHour % 6) == 0 {
+			var current types.HistoricalDatum
+			current.Datetime = data.Data[i].Datetime
+			current.WeatherDescription = data.Data[i].Weather.Description
+			ret = append(ret, current)
 		}
 	}
 
-	return matrix
+	for i := range ret {
+		ret[i].WeatherDescription = utils.Categorize(ret[i].WeatherDescription)
+	}
+
+	return ret
 }

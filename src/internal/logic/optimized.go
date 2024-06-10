@@ -2,9 +2,12 @@ package logic
 
 type OptimizedCalculator struct{}
 
-func (o OptimizedCalculator) GetProbability(transition_square_matrix [][]float64, at_period int, initial_state int) []float64 {
+func (o OptimizedCalculator) GetProbability(transition_square_matrix [][]float64, at_period int, initial_state int, num_moment int) [][]float64 {
 	// Initialize the probability vector
-	var probability []float64 = make([]float64, len(transition_square_matrix))
+	var probability [][]float64 = make([][]float64, 4)
+	for i := range probability {
+		probability[i] = make([]float64, len(transition_square_matrix))
+	}
 
 	// Using optimized dp w/ divide and conquer approach (matrix exponentiation)
 
@@ -12,8 +15,10 @@ func (o OptimizedCalculator) GetProbability(transition_square_matrix [][]float64
 	var result [][]float64 = matrixExponentiation(transition_square_matrix, at_period)
 
 	// Get the probability vector
-	for i := 0; i < len(transition_square_matrix); i++ {
-		probability[i] = result[initial_state][i]
+	probability[0] = result[initial_state]
+	for i := 1; i < num_moment; i++ {
+		result := multiplySquareMatrix(result, transition_square_matrix)[initial_state]
+		probability[i] = result
 	}
 
 	return probability
