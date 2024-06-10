@@ -14,8 +14,7 @@ func main() {
 
 	// Get transition matrix from "../data/dago-matrix.csv"
 
-	var matrix [][]float64
-	matrix = getMatrix("../data/dago-matrix.csv")
+	var matrix [][]float64 = getMatrix("../data/dago-matrix.csv")
 
 	naiveCalculator := logic.NaiveCalculator{}
 	result1 := naiveCalculator.GetProbability(matrix, 100, 3)

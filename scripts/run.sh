@@ -1,3 +1,3 @@
 cd src
 
-go run ./cmd/main/main.go
+go run ./cmd/stress/main.go
