@@ -35,6 +35,7 @@ func main() {
 	var total []int = make([]int, 4)
 
 	for i := 1; i <= 10000; i++ {
+		// fmt.Println(i)
 		random_int, _ := rand.Int(rand.Reader, big.NewInt(int64(len(data)-train_data_length-number)))
 		for set[int(random_int.Int64())] {
 			random_int, _ = rand.Int(rand.Reader, big.NewInt(int64(len(data)-train_data_length-number)))
@@ -78,12 +79,10 @@ func main() {
 		// get the highest andthe second highest probability index
 		first, second := utils.GetFirstAndSecondHighestIndex(naive_probability)
 
-		total[first]++
-		total[second]++
+		total[prediction_weather]++
 		if prediction_weather == first || prediction_weather == second {
 			// fmt.Println("Correct!")
-			correct[first]++
-			correct[second]++
+			correct[prediction_weather]++
 		} else {
 			// fmt.Println("Incorrect!")
 		}
