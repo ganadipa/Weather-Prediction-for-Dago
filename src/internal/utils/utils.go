@@ -140,12 +140,7 @@ func AppendWeatherResponseToDataset(weatherResponse types.WeatherResponse) {
 			continue
 		}
 
-		record := []string{data.Datetime, data.Weather.Description,
-			strconv.FormatFloat(data.Humidity, 'f', -1, 64),
-			strconv.FormatFloat(data.Temperature, 'f', -1, 64),
-			strconv.FormatFloat(data.Precipitation, 'f', -1, 64),
-			strconv.FormatFloat(data.WindSpeed, 'f', -1, 64),
-		}
+		record := []string{data.Datetime, data.Weather.Description}
 		if err := writer.Write(record); err != nil {
 			fmt.Println("Error writing record to file:", err)
 		}
